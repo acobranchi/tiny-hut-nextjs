@@ -1,0 +1,68 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator typegraphql {
+  provider = "typegraphql-prisma"
+}
+
+model Player {
+  playerId     Int         @id @default(autoincrement())
+  name         String      @unique
+  emailAddress String
+  characters   Character[]
+  gameMastered Campaign[]
+}
+
+model Character {
+  characterId        Int                 @id @default(autoincrement())
+  playerId           Int
+  player             Player              @relation(fields: [playerId], references: [playerId])
+  name               String
+  description        String?
+  class              String
+  level              Int
+  notes              String?
+  isDead             Boolean?            @default(false)
+  characterSheetUrl  String?
+  characterCampaigns CharacterCampaign[]
+}
+
+model RuleSet {
+  ruleSetId Int        @id @default(autoincrement())
+  name      String     @unique
+  code      String
+  campaigns Campaign[]
+}
+
+model Campaign {
+  campaignId         Int                 @id @default(autoincrement())
+  gameMaster         Player              @relation(fields: [gameMasterId], references: [playerId])
+  gameMasterId       Int
+  name               String              @unique
+  description        String?
+  notes              String?
+  startDate          DateTime?
+  endDate            DateTime?
+  ruleSet            RuleSet             @relation(fields: [ruleSetId], references: [ruleSetId])
+  ruleSetId          Int
+  characterCampaigns CharacterCampaign[]
+  isActive           Boolean?            @default(false)
+}
+
+model CharacterCampaign {
+  characterCampaignId Int       @id @default(autoincrement())
+  campaignId          Int
+  campaign            Campaign  @relation(fields: [campaignId], references: [campaignId])
+  characterId         Int
+  character           Character @relation(fields: [characterId], references: [characterId])
+  notes               String?
+}
